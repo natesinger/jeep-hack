@@ -65,7 +65,7 @@ class listen(gr.top_block, Qt.QWidget):
                 self.restoreGeometry(self.settings.value("geometry"))
         except:
             pass
-        
+
         ##################################################
         # Variables
         ##################################################
@@ -81,7 +81,7 @@ class listen(gr.top_block, Qt.QWidget):
         self.blocks_multiply_xx_0 = blocks.multiply_vcc(1)
         self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, 'generated_wave.bin', False)
         self.blocks_file_sink_0.set_unbuffered(False)
-        self.analog_sig_source_x_1 = analog.sig_source_c(samp_rate, analog.GR_SIN_WAVE, 439e6, 1, 0, 0)
+        self.analog_sig_source_x_1 = analog.sig_source_c(samp_rate, analog.GR_SIN_WAVE, 434e6, 1, 0, 0)
 
 
         ##################################################
@@ -115,31 +115,15 @@ class listen(gr.top_block, Qt.QWidget):
         self.blocks_vector_source_x_2.set_data(self.bitstream, [])
 
 
-
-
-
 def main(top_block_cls=listen, options=None):
-
-    print('1')
-
     if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
         style = gr.prefs().get_string('qtgui', 'style', 'raster')
         Qt.QApplication.setGraphicsSystem(style)
     qapp = Qt.QApplication(sys.argv)
 
-    print('2')
-
     tb = top_block_cls()
-
-    print('3')
-
     tb.start()
-
-    print('4')
-
     tb.show()
-
-    print('5')
 
     def sig_handler(sig=None, frame=None):
         Qt.QApplication.quit()
@@ -151,21 +135,13 @@ def main(top_block_cls=listen, options=None):
     timer.start(500)
     timer.timeout.connect(lambda: None)
 
-    print('6')
-
     def quitting():
         tb.stop()
         tb.wait()
 
-    print('7')
-
     qapp.aboutToQuit.connect(quitting)
-    
-    print('8')
-    
-    #qapp.exec_()
-    
-    print('9')
+
+    #qapp.exec_() DISPLAY BLANK
 
 if __name__ == '__main__':
     main()
