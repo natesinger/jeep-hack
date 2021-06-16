@@ -23,8 +23,9 @@ def run_stager(msg_preamble:str, msg_fobid: str, msg_cmd: str, msg_rolling: str)
 
     return::int     length of bitstream generated"""
 
+    wakeup_preamble = encode_message(assemble_message(b'\xFF'*14))
     message = encode_message(assemble_message(msg_preamble + msg_fobid + msg_cmd + msg_rolling)).encode()
-    bitstream = WAKEUP + PAUSE_SHORT + message + (PAUSE_LONG + message)*3 + PAUSE_SHORT
+    bitstream = WAKEUP + PAUSE_SHORT + wakeup_preamble + (PAUSE_LONG + message)*4 + PAUSE_SHORT
 
     with open('runtime/bitstream.bin', 'wb') as io:
         io.write(bitstream)
