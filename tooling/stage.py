@@ -8,21 +8,27 @@ PAUSE_LONG = b'0'*376   #
 # take a string of 1's 0's and convert to a list of bytes (int) for the manchester library
 def stage_input(stream:str) -> list: return [int(stream[i:i+8],2) for i in range(0,len(stream),8) if int(stream[i:i+8],2) >= 1]
 
-# take a bit stream as a string and manchester encode it, returned as a bit stream (str)
-def encode_message(stream:str) -> str: return ''.join([bin(byte)[2::].zfill(8) for byte in encode(stage_input(stream))])
-
 # take a bytestring and convert it to a string of 1's and 0's
 def assemble_message(stream:str) -> str: return ''.join([bin(byte)[2::].zfill(8) for byte in stream])
 
-msg_preamble = b'\xFF' #1 byte, always seems to be \xFF
-msg_fobid = b'\xFE\x37\xC3\x8F' #4 bytes, MSB has consistently been \xFE, FOB1=fe.37.c3.8f FOB2=fe.3e.25.ef
-msg_cmd = b'\x42\x41\x08' #3 bytes, command code, unlock is 42.41.04, lock is 42.40.44, rstart is 42.48.04, alarm is 42.40.24
-msg_rolling = b'\x08\xF7\x41\xFA\x63\x26' #6 bytes, probably a rolling code, always increases over time
+# take a bit stream as a string and manchester encode it, returned as a bit stream (str)
+def encode_message(stream:str) -> str: return ''.join([bin(byte)[2::].zfill(8) for byte in encode(stage_input(stream))])
 
-message = encode_message(assemble_message(msg_preamble + msg_fobid + msg_cmd + msg_rolling)).encode()
+def run_stager(msg_preamble:str, msg_fobid: str, msg_cmd: str, msg_rolling: str) -> int:
+    """take bytstrings of command statement and stage bitstream approperiately for modulation
+    param::b_str::msg_preamble  one byte, always \xFF
+    param::b_str::msg_fobid     four bytes, identifier of the keyfob
+    param::b_str::msg_cmd       three bytes, command code
+    param::b_str::msg_rolling   six bytes, presumably the rolling code for the cipher
 
-with open('bitstream.bin', 'wb') as io:
-    io.write(WAKEUP + PAUSE_SHORT + message + (PAUSE_LONG + message)*3 + PAUSE_SHORT)
+    return::int     length of bitstream generated"""
+
+    message = encode_message(assemble_message(msg_preamble + msg_fobid + msg_cmd + msg_rolling)).encode()
+    bitstream = WAKEUP + PAUSE_SHORT + message + (PAUSE_LONG + message)*3 + PAUSE_SHORT
+
+    with open('runtime/bitstream.bin', 'wb') as io:
+        io.write(bitstream)
+    return len(bitstream)
 
 """
 20: 11111111111111111111

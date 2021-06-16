@@ -35,7 +35,7 @@ import time
 
 class listen(gr.top_block, Qt.QWidget):
 
-    def __init__(self):
+    def __init__(self, carrier_frequency):
         gr.top_block.__init__(self, "Key Fob Listen")
         Qt.QWidget.__init__(self)
         self.setWindowTitle("Key Fob Listen")
@@ -70,7 +70,7 @@ class listen(gr.top_block, Qt.QWidget):
         # Variables
         ##################################################
         self.samp_rate = samp_rate = 20e6
-        with open('bitstream.bin','r') as io: self.bitstream = bitstream = [int(c) for c in io.read() if (c == '0') or (c == '1')]
+        with open('runtime/bitstream.bin','r') as io: self.bitstream = bitstream = [int(c) for c in io.read() if (c == '0') or (c == '1')]
 
         ##################################################
         # Blocks
@@ -79,9 +79,9 @@ class listen(gr.top_block, Qt.QWidget):
         self.blocks_throttle_0 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
         self.blocks_repeat_0 = blocks.repeat(gr.sizeof_gr_complex*1, 4167)
         self.blocks_multiply_xx_0 = blocks.multiply_vcc(1)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, 'generated_wave.bin', False)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, 'runtime/wave.bin', False)
         self.blocks_file_sink_0.set_unbuffered(False)
-        self.analog_sig_source_x_1 = analog.sig_source_c(samp_rate, analog.GR_SIN_WAVE, 434e6, 1, 0, 0)
+        self.analog_sig_source_x_1 = analog.sig_source_c(samp_rate, analog.GR_SIN_WAVE, carrier_frequency, 1, 0, 0)
 
 
         ##################################################
@@ -115,13 +115,13 @@ class listen(gr.top_block, Qt.QWidget):
         self.blocks_vector_source_x_2.set_data(self.bitstream, [])
 
 
-def main(top_block_cls=listen, options=None):
+def run_modulate(carrier_frequency=434e6, top_block_cls=listen, options=None):
     if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
         style = gr.prefs().get_string('qtgui', 'style', 'raster')
         Qt.QApplication.setGraphicsSystem(style)
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls()
+    tb = top_block_cls(carrier_frequency)
     tb.start()
     tb.show()
 
@@ -144,4 +144,4 @@ def main(top_block_cls=listen, options=None):
     #qapp.exec_() DISPLAY BLANK
 
 if __name__ == '__main__':
-    main()
+    run_modulate()
